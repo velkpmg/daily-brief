@@ -437,19 +437,14 @@ function extractArticles(data) {
     .map(b => b.text)
     .join('\n');
 
-  // Find the largest JSON array of objects in the text
-  const matches = [...textBlocks.matchAll(/\[\s*\{[\s\S]*?\}\s*\]/g)];
-  for (const m of matches.reverse()) {
+  // Strip markdown code fences if present
+  const stripped = textBlocks.replace(/```(?:json)?\s*/g, '').replace(/```/g, '');
+
+  // Try greedy match for a JSON array of objects
+  const match = stripped.match(/\[[\s\S]*\]/);
+  if (match) {
     try {
-      const arr = JSON.parse(m[0]);
-      if (Array.isArray(arr) && arr.length > 0 && arr[0].title) return arr;
-    } catch (_) {}
-  }
-  // Fallback: greedy match for any array
-  const fallback = textBlocks.match(/\[[\s\S]*\]/);
-  if (fallback) {
-    try {
-      const arr = JSON.parse(fallback[0]);
+      const arr = JSON.parse(match[0]);
       if (Array.isArray(arr) && arr.length > 0 && arr[0].title) return arr;
     } catch (_) {}
   }
