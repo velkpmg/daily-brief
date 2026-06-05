@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Brief</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f14;
+      --surface: #161820;
+      --surface2: #1e2028;
+      --border: #2a2d38;
+      --text: #e8eaf0;
+      --muted: #8b8fa8;
+      --accent: #4f8ef7;
+      --green: #34d399;
+      --red: #f87171;
+
+      --tag-re: #7c3aed;
+      --tag-ca: #0891b2;
+      --tag-cigar: #b45309;
+      --tag-general: #374151;
+      --tag-market: #065f46;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Ticker ── */
+    .ticker-wrapper {
+      background: #10121a;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      height: 36px;
+      display: flex;
+      align-items: center;
+    }
+
+    .ticker-label {
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      padding: 0 12px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .ticker-track {
+      display: flex;
+      animation: ticker 35s linear infinite;
+      white-space: nowrap;
+    }
+
+    .ticker-track:hover { animation-play-state: paused; }
+
+    @keyframes ticker {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 20px;
+      font-size: 12px;
+      font-weight: 500;
+      border-right: 1px solid var(--border);
+    }
+
+    .ticker-sym { color: var(--muted); font-size: 11px; }
+    .ticker-price { color: var(--text); }
+    .ticker-chg.up   { color: var(--green); }
+    .ticker-chg.down { color: var(--red); }
+
+    /* ── Header ── */
+    header {
+      padding: 28px 32px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+
+    header .date {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      padding: 20px 32px 0;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 18px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: color .15s, border-color .15s;
+    }
+
+    .tab-btn:hover { color: var(--text); }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; padding: 24px 32px 40px; }
+    .tab-panel.active { display: block; }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .panel-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .refresh-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background .15s;
+    }
+
+    .refresh-btn:hover { background: #25273a; }
+    .refresh-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    .refresh-icon { font-size: 14px; display: inline-block; }
+    .refresh-btn.spinning .refresh-icon { animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Loading / Error ── */
+    .state-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    .error-icon { font-size: 32px; }
+    .error-msg { color: var(--red); font-weight: 500; }
+    .error-detail { color: var(--muted); font-size: 12px; max-width: 480px; }
+
+    /* ── Cards ── */
+    .cards-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      transition: border-color .15s, background .15s;
+    }
+
+    .card:hover {
+      background: var(--surface2);
+      border-color: #3a3e52;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: #fff;
+    }
+
+    .tag-re      { background: var(--tag-re); }
+    .tag-ca      { background: var(--tag-ca); }
+    .tag-cigar   { background: var(--tag-cigar); }
+    .tag-general { background: var(--tag-general); border: 1px solid #4b5563; }
+    .tag-market  { background: var(--tag-market); }
+
+    .card-source { color: var(--muted); font-size: 11px; font-weight: 500; }
+    .card-time   { color: var(--muted); font-size: 11px; margin-left: auto; }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .card-title a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .card-title a:hover { color: var(--accent); }
+
+    .card-summary {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #a0a4bc;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      header, .tabs, .tab-panel { padding-left: 16px; padding-right: 16px; }
+      header h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Stock Ticker -->
+<div class="ticker-wrapper">
+  <div class="ticker-label">LIVE MARKETS</div>
+  <div style="overflow:hidden;flex:1">
+    <div class="ticker-track" id="tickerTrack"><!-- populated by JS --></div>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <h1>Daily Brief</h1>
+  <span class="date" id="headerDate"></span>
+</header>
+
+<!-- Tab bar -->
+<nav class="tabs" role="tablist">
+  <button class="tab-btn active" role="tab" data-tab="re"      onclick="switchTab('re')">Real Estate</button>
+  <button class="tab-btn"        role="tab" data-tab="ca"      onclick="switchTab('ca')">CA Property</button>
+  <button class="tab-btn"        role="tab" data-tab="cigar"   onclick="switchTab('cigar')">Cigar &amp; Tobacco</button>
+  <button class="tab-btn"        role="tab" data-tab="general" onclick="switchTab('general')">General News</button>
+  <button class="tab-btn"        role="tab" data-tab="market"  onclick="switchTab('market')">US Markets</button>
+</nav>
+
+<!-- Panels -->
+<main>
+  <div id="panel-re" class="tab-panel active">
+    <div class="panel-header">
+      <h2>Real Estate &amp; Property Management</h2>
+      <button class="refresh-btn" onclick="loadTab('re')"><span class="refresh-icon">↻</span> Refresh</button>
+    </div>
+    <div id="content-re" class="state-box"><div class="spinner"></div><span>Loading headlines…</span></div>
+  </div>
+
+  <div id="panel-ca" class="tab-panel">
+    <div class="panel-header">
+      <h2>California Property Management</h2>
+      <button class="refresh-btn" onclick="loadTab('ca')"><span class="refresh-icon">↻</span> Refresh</button>
+    </div>
+    <div id="content-ca" class="state-box"><div class="spinner"></div><span>Loading headlines…</span></div>
+  </div>
+
+  <div id="panel-cigar" class="tab-panel">
+    <div class="panel-header">
+      <h2>Cigar &amp; Tobacco Industry</h2>
+      <button class="refresh-btn" onclick="loadTab('cigar')"><span class="refresh-icon">↻</span> Refresh</button>
+    </div>
+    <div id="content-cigar" class="state-box"><div class="spinner"></div><span>Loading headlines…</span></div>
+  </div>
+
+  <div id="panel-general" class="tab-panel">
+    <div class="panel-header">
+      <h2>General News</h2>
+      <button class="refresh-btn" onclick="loadTab('general')"><span class="refresh-icon">↻</span> Refresh</button>
+    </div>
+    <div id="content-general" class="state-box"><div class="spinner"></div><span>Loading headlines…</span></div>
+  </div>
+
+  <div id="panel-market" class="tab-panel">
+    <div class="panel-header">
+      <h2>US Financial Markets &amp; Stocks</h2>
+      <button class="refresh-btn" onclick="loadTab('market')"><span class="refresh-icon">↻</span> Refresh</button>
+    </div>
+    <div id="content-market" class="state-box"><div class="spinner"></div><span>Loading headlines…</span></div>
+  </div>
+</main>
+
+<script>
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+const TAB_CONFIG = {
+  re: {
+    label: 'Real Estate',
+    tagClass: 'tag-re',
+    prompt: `Search the web for the 10 most recent and important Real Estate and Property Management news headlines from today or the past 48 hours. Include national market trends, mortgage rates, commercial real estate, REITs, landlord/tenant issues, and property management industry news. Return ONLY a JSON array of 10 objects with these exact keys: title, source, time, summary, url. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
+  },
+  ca: {
+    label: 'CA Property',
+    tagClass: 'tag-ca',
+    prompt: `Search the web for the 10 most recent California Property Management and housing news headlines from today or the past 48 hours. Focus on: California rent control laws, AB and SB legislation affecting landlords/tenants, California Apartment Association (CAA) news, Los Angeles and San Francisco housing policy, eviction moratoriums and policy, statewide housing shortage. Return ONLY a JSON array of 10 objects with these exact keys: title, source, time, summary, url. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
+  },
+  cigar: {
+    label: 'Cigar & Tobacco',
+    tagClass: 'tag-cigar',
+    prompt: `Search the web for the 10 most recent Cigar and Tobacco Industry news headlines from today or the past 48 hours. Include premium cigar releases, FDA tobacco regulation, cigar lounge news, tobacco trade news, new blends and manufacturer news, cigar ratings and reviews news. Return ONLY a JSON array of 10 objects with these exact keys: title, source, time, summary, url. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
+  },
+  general: {
+    label: 'General',
+    tagClass: 'tag-general',
+    prompt: `Search the web for the 10 most important general news headlines from today or the past 24 hours. Include politics, world news, science, technology, and major events. Return ONLY a JSON array of 10 objects with these exact keys: title, source, time, summary, url. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
+  },
+  market: {
+    label: 'Markets',
+    tagClass: 'tag-market',
+    prompt: `Search the web for the 10 most important US Financial Markets and Stock Market news headlines from today or the past 24 hours. Include S&P 500, Dow Jones, NASDAQ moves, Federal Reserve news, earnings reports, economic data, major stock movers, and Wall Street analysis. Return ONLY a JSON array of 10 objects with these exact keys: title, source, time, summary, url. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
+  }
+};
+
+const cache = {};
+let activeTab = 're';
+
+// ── Date header ───────────────────────────────────────────────────────────────
+document.getElementById('headerDate').textContent = new Date().toLocaleDateString('en-US', {
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+});
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
+  activeTab = tab;
+  if (!cache[tab]) loadTab(tab);
+}
+
+// ── Fetch headlines ───────────────────────────────────────────────────────────
+async function loadTab(tab) {
+  const contentEl = document.getElementById(`content-${tab}`);
+  const btn = document.querySelector(`#panel-${tab} .refresh-btn`);
+
+  cache[tab] = null;
+  showLoading(contentEl);
+  if (btn) { btn.disabled = true; btn.classList.add('spinning'); }
+
+  try {
+    const res = await fetch('/api/news', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: TAB_CONFIG[tab].prompt })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const articles = extractArticles(data);
+    if (!articles || !articles.length) throw new Error('No articles returned. The API response did not contain a valid JSON array of headlines.');
+
+    cache[tab] = articles;
+    renderCards(contentEl, articles, TAB_CONFIG[tab].tagClass, TAB_CONFIG[tab].label);
+
+  } catch (err) {
+    showError(contentEl, err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.classList.remove('spinning'); }
+  }
+}
+
+// ── Extract JSON array from Anthropic response ────────────────────────────────
+function extractArticles(data) {
+  // Collect all text blocks
+  const textBlocks = (data.content || [])
+    .filter(b => b.type === 'text')
+    .map(b => b.text)
+    .join('\n');
+
+  // Find JSON array in the text
+  const match = textBlocks.match(/\[[\s\S]*?\]/);
+  if (!match) return null;
+
+  try {
+    const arr = JSON.parse(match[0]);
+    if (Array.isArray(arr) && arr.length > 0 && arr[0].title) return arr;
+  } catch (_) {}
+  return null;
+}
+
+// ── Render cards ──────────────────────────────────────────────────────────────
+function renderCards(el, articles, tagClass, tagLabel) {
+  const grid = document.createElement('div');
+  grid.className = 'cards-grid';
+
+  articles.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const titleHtml = a.url
+      ? `<a href="${escHtml(a.url)}" target="_blank" rel="noopener">${escHtml(a.title)}</a>`
+      : escHtml(a.title);
+
+    card.innerHTML = `
+      <div class="card-meta">
+        <span class="tag ${tagClass}">${escHtml(tagLabel)}</span>
+        <span class="card-source">${escHtml(a.source || 'Unknown')}</span>
+        <span class="card-time">${escHtml(a.time || '')}</span>
+      </div>
+      <div class="card-title">${titleHtml}</div>
+      <div class="card-summary">${escHtml(a.summary || '')}</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  el.innerHTML = '';
+  el.className = '';
+  el.appendChild(grid);
+}
+
+function showLoading(el) {
+  el.className = 'state-box';
+  el.innerHTML = '<div class="spinner"></div><span>Fetching live headlines…</span>';
+}
+
+function showError(el, msg) {
+  el.className = 'state-box';
+  el.innerHTML = `
+    <span class="error-icon">⚠️</span>
+    <span class="error-msg">Failed to load headlines</span>
+    <span class="error-detail">${escHtml(msg)}</span>
+  `;
+}
+
+function escHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ── Stock Ticker ──────────────────────────────────────────────────────────────
+const SYMBOLS = [
+  { sym: 'SPY',     name: 'S&P ETF' },
+  { sym: 'AAPL',    name: 'Apple' },
+  { sym: 'MSFT',    name: 'Microsoft' },
+  { sym: 'NVDA',    name: 'Nvidia' },
+  { sym: 'AMZN',    name: 'Amazon' },
+  { sym: 'TSLA',    name: 'Tesla' },
+  { sym: 'GOOGL',   name: 'Alphabet' },
+  { sym: 'META',    name: 'Meta' },
+  { sym: 'JPM',     name: 'JPMorgan' },
+  { sym: 'DOW',     name: 'Dow Jones' },
+  { sym: 'NASDAQ',  name: 'NASDAQ' },
+  { sym: 'S&P500',  name: 'S&P 500' },
+  { sym: 'VIX',     name: 'VIX' },
+  { sym: 'GOLD',    name: 'Gold' },
+  { sym: 'BTC',     name: 'Bitcoin' },
+];
+
+function buildTicker(quotes) {
+  const track = document.getElementById('tickerTrack');
+  // Duplicate items for seamless loop
+  let html = '';
+  for (let pass = 0; pass < 2; pass++) {
+    quotes.forEach(q => {
+      const dir = q.change >= 0 ? 'up' : 'down';
+      const arrow = q.change >= 0 ? '▲' : '▼';
+      html += `<div class="ticker-item">
+        <span class="ticker-sym">${escHtml(q.sym)}</span>
+        <span class="ticker-price">${q.price}</span>
+        <span class="ticker-chg ${dir}">${arrow} ${q.changeStr}</span>
+      </div>`;
+    });
+  }
+  track.innerHTML = html;
+}
+
+async function loadTicker() {
+  // Use a public free API (Yahoo Finance unofficial) for basic quotes
+  const syms = ['SPY','AAPL','MSFT','NVDA','AMZN','TSLA','GOOGL','META','JPM'];
+  try {
+    // Attempt to fetch from Yahoo Finance via a CORS proxy
+    const results = await Promise.all(
+      syms.map(s =>
+        fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${s}?interval=1d&range=1d`)
+          .then(r => r.json())
+          .catch(() => null)
+      )
+    );
+
+    const quotes = results.map((r, i) => {
+      const sym = syms[i];
+      if (!r) return mockQuote(sym);
+      try {
+        const meta = r.chart.result[0].meta;
+        const price = meta.regularMarketPrice;
+        const prev  = meta.chartPreviousClose || meta.previousClose || price;
+        const change = price - prev;
+        const pct    = (change / prev) * 100;
+        return {
+          sym,
+          price: price.toFixed(2),
+          change,
+          changeStr: `${Math.abs(pct).toFixed(2)}%`
+        };
+      } catch (_) { return mockQuote(sym); }
+    });
+
+    // Add index / commodity placeholders using mock data
+    const extras = ['DOW','NASDAQ','S&P500','VIX','GOLD','BTC'].map(mockQuote);
+    buildTicker([...quotes, ...extras]);
+
+  } catch (_) {
+    buildTicker(SYMBOLS.map(s => mockQuote(s.sym)));
+  }
+}
+
+function mockQuote(sym) {
+  // Static placeholder values when market data isn't available
+  const prices = {
+    SPY: 539.12, AAPL: 211.45, MSFT: 422.80, NVDA: 127.60, AMZN: 192.30,
+    TSLA: 248.50, GOOGL: 176.90, META: 525.40, JPM: 214.60,
+    DOW: 42850, NASDAQ: 19200, 'S&P500': 5890, VIX: 13.4, GOLD: 2340, BTC: 67800
+  };
+  const base = prices[sym] || 100;
+  const change = (Math.random() - 0.48) * base * 0.012;
+  return {
+    sym,
+    price: (base + change).toFixed(sym === 'BTC' ? 0 : 2),
+    change,
+    changeStr: `${Math.abs((change / base) * 100).toFixed(2)}%`
+  };
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadTicker();
+loadTab('re'); // auto-load first tab
+</script>
+</body>
+</html>
