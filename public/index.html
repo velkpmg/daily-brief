@@ -409,7 +409,10 @@ async function loadTab(tab) {
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      const errMsg = (data.error && data.error.message) ? data.error.message
+        : (typeof data.error === 'string') ? data.error
+        : `HTTP ${res.status}: ${res.statusText}`;
+      throw new Error(errMsg);
     }
 
     const articles = extractArticles(data);
@@ -433,14 +436,22 @@ function extractArticles(data) {
     .map(b => b.text)
     .join('\n');
 
-  // Find JSON array in the text
-  const match = textBlocks.match(/\[[\s\S]*?\]/);
-  if (!match) return null;
-
-  try {
-    const arr = JSON.parse(match[0]);
-    if (Array.isArray(arr) && arr.length > 0 && arr[0].title) return arr;
-  } catch (_) {}
+  // Find the largest JSON array of objects in the text
+  const matches = [...textBlocks.matchAll(/\[\s*\{[\s\S]*?\}\s*\]/g)];
+  for (const m of matches.reverse()) {
+    try {
+      const arr = JSON.parse(m[0]);
+      if (Array.isArray(arr) && arr.length > 0 && arr[0].title) return arr;
+    } catch (_) {}
+  }
+  // Fallback: greedy match for any array
+  const fallback = textBlocks.match(/\[[\s\S]*\]/);
+  if (fallback) {
+    try {
+      const arr = JSON.parse(fallback[0]);
+      if (Array.isArray(arr) && arr.length > 0 && arr[0].title) return arr;
+    } catch (_) {}
+  }
   return null;
 }
 
