@@ -409,9 +409,10 @@ async function loadTab(tab) {
     const data = await res.json();
 
     if (!res.ok) {
-      const errMsg = (data.error && data.error.message) ? data.error.message
+      let errMsg = (data.error && data.error.message) ? data.error.message
         : (typeof data.error === 'string') ? data.error
         : `HTTP ${res.status}: ${res.statusText}`;
+      if (res.status === 429) errMsg = 'Rate limit reached — please wait 60 seconds and click Refresh.';
       throw new Error(errMsg);
     }
 
