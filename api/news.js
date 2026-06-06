@@ -85,12 +85,14 @@ module.exports = async (req, res) => {
           }
 
           if (!articles) {
-            // Return debug info so we can see what came back
             return res.status(500).json({
               error: 'Could not extract articles from response',
               debug: cleaned.slice(0, 500)
             });
           }
+
+          // Sort newest first using timestamp if present, preserving order for ties
+          articles.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
           resolve();
           return res.status(200).json({ articles });
