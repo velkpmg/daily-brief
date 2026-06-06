@@ -350,27 +350,27 @@ const TAB_CONFIG = {
   re: {
     label: 'Real Estate',
     tagClass: 'tag-re',
-    prompt: `Search the web for the 10 most recent and important Real Estate and Property Management news headlines from today or the past 48 hours. Include national market trends, mortgage rates, commercial real estate, REITs, landlord/tenant issues, and property management industry news. Return ONLY a JSON array of 10 objects with these exact keys: title, source, time, summary, url. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
+    prompt: `Search the web for the 10 most recent and important Real Estate and Property Management news headlines from today or the past 48 hours. Include national market trends, mortgage rates, commercial real estate, REITs, landlord/tenant issues, and property management industry news. Return ONLY a JSON array (no other text, no code fences) of up to 10 objects with these exact keys: title, source, time, summary, url. Return whatever you found even if fewer than 10. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
   },
   ca: {
     label: 'CA Property',
     tagClass: 'tag-ca',
-    prompt: `Search the web for the 10 most recent California Property Management and housing news headlines from today or the past 48 hours. Focus on: California rent control laws, AB and SB legislation affecting landlords/tenants, California Apartment Association (CAA) news, Los Angeles and San Francisco housing policy, eviction moratoriums and policy, statewide housing shortage. Return ONLY a JSON array of 10 objects with these exact keys: title, source, time, summary, url. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
+    prompt: `Search the web for the 10 most recent California Property Management and housing news headlines from today or the past 48 hours. Focus on: California rent control laws, AB and SB legislation affecting landlords/tenants, California Apartment Association (CAA) news, Los Angeles and San Francisco housing policy, eviction moratoriums and policy, statewide housing shortage. Return ONLY a JSON array (no other text, no code fences) of up to 10 objects with these exact keys: title, source, time, summary, url. Return whatever you found even if fewer than 10. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
   },
   cigar: {
     label: 'Cigar & Tobacco',
     tagClass: 'tag-cigar',
-    prompt: `Search the web for the 10 most recent Cigar and Tobacco Industry news headlines from today or the past 48 hours. Include premium cigar releases, FDA tobacco regulation, cigar lounge news, tobacco trade news, new blends and manufacturer news, cigar ratings and reviews news. Return ONLY a JSON array of 10 objects with these exact keys: title, source, time, summary, url. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
+    prompt: `Search the web for the 10 most recent Cigar and Tobacco Industry news headlines from today or the past 48 hours. Include premium cigar releases, FDA tobacco regulation, cigar lounge news, tobacco trade news, new blends and manufacturer news, cigar ratings and reviews news. Return ONLY a JSON array (no other text, no code fences) of up to 10 objects with these exact keys: title, source, time, summary, url. Return whatever you found even if fewer than 10. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
   },
   general: {
     label: 'General',
     tagClass: 'tag-general',
-    prompt: `Search the web for the 10 most important general news headlines from today or the past 24 hours. Include politics, world news, science, technology, and major events. Return ONLY a JSON array of 10 objects with these exact keys: title, source, time, summary, url. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
+    prompt: `Search the web for the 10 most important general news headlines from today or the past 24 hours. Include politics, world news, science, technology, and major events. Return ONLY a JSON array (no other text, no code fences) of up to 10 objects with these exact keys: title, source, time, summary, url. Return whatever you found even if fewer than 10. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
   },
   market: {
     label: 'Markets',
     tagClass: 'tag-market',
-    prompt: `Search the web for the 10 most important US Financial Markets and Stock Market news headlines from today or the past 24 hours. Include S&P 500, Dow Jones, NASDAQ moves, Federal Reserve news, earnings reports, economic data, major stock movers, and Wall Street analysis. Return ONLY a JSON array of 10 objects with these exact keys: title, source, time, summary, url. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
+    prompt: `Search the web for the 10 most important US Financial Markets and Stock Market news headlines from today or the past 24 hours. Include S&P 500, Dow Jones, NASDAQ moves, Federal Reserve news, earnings reports, economic data, major stock movers, and Wall Street analysis. Return ONLY a JSON array (no other text, no code fences) of up to 10 objects with these exact keys: title, source, time, summary, url. Return whatever you found even if fewer than 10. The summary must be exactly one sentence. Example: [{"title":"...","source":"...","time":"2 hours ago","summary":"...","url":"https://..."}]`
   }
 };
 
