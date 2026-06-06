@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
 
   const payload = JSON.stringify({
     model: 'claude-sonnet-4-6',       // updated from 4-5
-    max_tokens: 1024,                  // reduced from 4096 — JSON array needs ~400-600 tokens
+    max_tokens: 2048,                  // 10 articles × ~150 tokens each + overhead = ~1500-1800 tokens needed
     tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }],
     messages: [{ role: 'user', content: prompt }]
   });
