@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
 
   const payload = JSON.stringify({
     model: 'claude-sonnet-4-6',       // updated from 4-5
-    max_tokens: 4096,                  // generous headroom — responses use ~1500-1800 tokens, this gives 2x margin
+    max_tokens: 8192,                  // model maximum — responses use ~1500-1800 tokens, this is the hard ceiling
     tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }],
     messages: [{ role: 'user', content: prompt }]
   });
