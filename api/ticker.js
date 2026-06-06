@@ -15,7 +15,7 @@ const SYMBOLS = [
   { finnhub: 'QQQ',              label: 'NASDAQ',  type: 'stock' },  // NASDAQ-100 ETF
   { finnhub: 'VOO',              label: 'S&P 500', type: 'stock' },  // S&P 500 ETF
   { finnhub: 'VIXY',             label: 'VIX',     type: 'stock' },  // VIX futures ETF
-  { finnhub: 'OANDA:XAU_USD',    label: 'GOLD',    type: 'forex'  },
+  { finnhub: 'GLD',               label: 'GOLD',    type: 'stock'  },  // SPDR Gold ETF
   { finnhub: 'BINANCE:BTCUSDT',  label: 'BTC',     type: 'crypto' },
 ];
 
