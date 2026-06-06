@@ -89,6 +89,14 @@
     header {
       padding: 28px 32px 0;
       display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .header-left {
+      display: flex;
       align-items: baseline;
       gap: 16px;
     }
@@ -103,6 +111,60 @@
     header .date {
       color: var(--muted);
       font-size: 13px;
+    }
+
+    /* ── Weather Widget ── */
+    .weather-widget {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 220px;
+    }
+
+    .weather-loading {
+      color: var(--muted);
+      font-size: 18px;
+      animation: spin .8s linear infinite;
+      margin: 0 auto;
+    }
+
+    .weather-icon { font-size: 28px; line-height: 1; }
+
+    .weather-info { display: flex; flex-direction: column; gap: 2px; }
+
+    .weather-temp {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .weather-desc {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: capitalize;
+    }
+
+    .weather-details {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border-left: 1px solid var(--border);
+      padding-left: 12px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .weather-location {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
     }
 
     /* ── Tabs ── */
@@ -287,8 +349,13 @@
 
 <!-- Header -->
 <header>
-  <h1>Daily Brief</h1>
-  <span class="date" id="headerDate"></span>
+  <div class="header-left">
+    <h1>Kirk's Daily Brief</h1>
+    <span class="date" id="headerDate"></span>
+  </div>
+  <div class="weather-widget" id="weatherWidget">
+    <div class="weather-loading">⟳</div>
+  </div>
 </header>
 
 <!-- Tab bar -->
@@ -558,6 +625,72 @@ async function loadTicker() {
 // Refresh ticker every 60 seconds
 loadTicker();
 setInterval(loadTicker, 60000);
+
+// ── Weather Widget ────────────────────────────────────────────────────────────
+const WX_CODES = {
+  0:  ['☀️',  'Clear'],
+  1:  ['🌤️', 'Mostly Clear'],
+  2:  ['⛅',  'Partly Cloudy'],
+  3:  ['☁️',  'Overcast'],
+  45: ['🌫️', 'Foggy'],
+  48: ['🌫️', 'Icy Fog'],
+  51: ['🌦️', 'Light Drizzle'],
+  53: ['🌦️', 'Drizzle'],
+  55: ['🌧️', 'Heavy Drizzle'],
+  61: ['🌧️', 'Light Rain'],
+  63: ['🌧️', 'Rain'],
+  65: ['🌧️', 'Heavy Rain'],
+  71: ['🌨️', 'Light Snow'],
+  73: ['🌨️', 'Snow'],
+  75: ['❄️',  'Heavy Snow'],
+  80: ['🌦️', 'Rain Showers'],
+  81: ['🌧️', 'Heavy Showers'],
+  82: ['⛈️', 'Violent Showers'],
+  95: ['⛈️', 'Thunderstorm'],
+  96: ['⛈️', 'Thunderstorm + Hail'],
+  99: ['⛈️', 'Heavy Thunderstorm'],
+};
+
+async function loadWeather() {
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast' +
+      '?latitude=34.0522&longitude=-118.2437' +
+      '&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m' +
+      '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FLos_Angeles';
+
+    const res  = await fetch(url);
+    const data = await res.json();
+    const c    = data.current;
+
+    const code = c.weather_code;
+    const [icon, desc] = WX_CODES[code] || ['🌡️', 'Unknown'];
+    const temp     = Math.round(c.temperature_2m);
+    const feels    = Math.round(c.apparent_temperature);
+    const humidity = Math.round(c.relative_humidity_2m);
+    const wind     = Math.round(c.wind_speed_10m);
+
+    document.getElementById('weatherWidget').innerHTML = `
+      <div class="weather-icon">${icon}</div>
+      <div class="weather-info">
+        <div class="weather-temp">${temp}°F</div>
+        <div class="weather-desc">${desc}</div>
+        <div class="weather-location">Los Angeles, CA</div>
+      </div>
+      <div class="weather-details">
+        <span>Feels ${feels}°F</span>
+        <span>Humidity ${humidity}%</span>
+        <span>Wind ${wind} mph</span>
+      </div>
+    `;
+  } catch (_) {
+    document.getElementById('weatherWidget').innerHTML =
+      '<span style="color:var(--muted);font-size:12px">Weather unavailable</span>';
+  }
+}
+
+// Load weather on start, refresh every 10 minutes
+loadWeather();
+setInterval(loadWeather, 600000);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadTab('re'); // auto-load first tab
