@@ -409,15 +409,16 @@ async function loadTab(tab) {
     const data = await res.json();
 
     if (!res.ok) {
-      let errMsg = (data.error && data.error.message) ? data.error.message
-        : (typeof data.error === 'string') ? data.error
-        : `HTTP ${res.status}: ${res.statusText}`;
+      let errMsg = (typeof data.error === 'string') ? data.error : `HTTP ${res.status}: ${res.statusText}`;
       if (res.status === 429) errMsg = 'Rate limit reached — please wait 60 seconds and click Refresh.';
       throw new Error(errMsg);
     }
 
-    const articles = extractArticles(data);
-    if (!articles || !articles.length) throw new Error('No articles returned. The API response did not contain a valid JSON array of headlines.');
+    const articles = data.articles;
+    if (!articles || !articles.length) {
+      const hint = data.debug ? ` Debug: ${data.debug.slice(0, 120)}` : '';
+      throw new Error('No articles returned.' + hint);
+    }
 
     cache[tab] = articles;
     renderCards(contentEl, articles, TAB_CONFIG[tab].tagClass, TAB_CONFIG[tab].label);
