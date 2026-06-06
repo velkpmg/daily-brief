@@ -505,36 +505,17 @@ function escHtml(str) {
 }
 
 // ── Stock Ticker ──────────────────────────────────────────────────────────────
-const SYMBOLS = [
-  { sym: 'SPY',     name: 'S&P ETF' },
-  { sym: 'AAPL',    name: 'Apple' },
-  { sym: 'MSFT',    name: 'Microsoft' },
-  { sym: 'NVDA',    name: 'Nvidia' },
-  { sym: 'AMZN',    name: 'Amazon' },
-  { sym: 'TSLA',    name: 'Tesla' },
-  { sym: 'GOOGL',   name: 'Alphabet' },
-  { sym: 'META',    name: 'Meta' },
-  { sym: 'JPM',     name: 'JPMorgan' },
-  { sym: 'DOW',     name: 'Dow Jones' },
-  { sym: 'NASDAQ',  name: 'NASDAQ' },
-  { sym: 'S&P500',  name: 'S&P 500' },
-  { sym: 'VIX',     name: 'VIX' },
-  { sym: 'GOLD',    name: 'Gold' },
-  { sym: 'BTC',     name: 'Bitcoin' },
-];
-
 function buildTicker(quotes) {
   const track = document.getElementById('tickerTrack');
-  // Duplicate items for seamless loop
   let html = '';
   for (let pass = 0; pass < 2; pass++) {
     quotes.forEach(q => {
-      const dir = q.change >= 0 ? 'up' : 'down';
+      const dir   = q.change >= 0 ? 'up' : 'down';
       const arrow = q.change >= 0 ? '▲' : '▼';
       html += `<div class="ticker-item">
-        <span class="ticker-sym">${escHtml(q.sym)}</span>
-        <span class="ticker-price">${q.price}</span>
-        <span class="ticker-chg ${dir}">${arrow} ${q.changeStr}</span>
+        <span class="ticker-sym">${escHtml(q.label)}</span>
+        <span class="ticker-price">${escHtml(q.price)}</span>
+        <span class="ticker-chg ${dir}">${arrow} ${escHtml(q.changeStr)}</span>
       </div>`;
     });
   }
@@ -542,64 +523,22 @@ function buildTicker(quotes) {
 }
 
 async function loadTicker() {
-  // Use a public free API (Yahoo Finance unofficial) for basic quotes
-  const syms = ['SPY','AAPL','MSFT','NVDA','AMZN','TSLA','GOOGL','META','JPM'];
   try {
-    // Attempt to fetch from Yahoo Finance via a CORS proxy
-    const results = await Promise.all(
-      syms.map(s =>
-        fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${s}?interval=1d&range=1d`)
-          .then(r => r.json())
-          .catch(() => null)
-      )
-    );
-
-    const quotes = results.map((r, i) => {
-      const sym = syms[i];
-      if (!r) return mockQuote(sym);
-      try {
-        const meta = r.chart.result[0].meta;
-        const price = meta.regularMarketPrice;
-        const prev  = meta.chartPreviousClose || meta.previousClose || price;
-        const change = price - prev;
-        const pct    = (change / prev) * 100;
-        return {
-          sym,
-          price: price.toFixed(2),
-          change,
-          changeStr: `${Math.abs(pct).toFixed(2)}%`
-        };
-      } catch (_) { return mockQuote(sym); }
-    });
-
-    // Add index / commodity placeholders using mock data
-    const extras = ['DOW','NASDAQ','S&P500','VIX','GOLD','BTC'].map(mockQuote);
-    buildTicker([...quotes, ...extras]);
-
+    const res = await fetch('/api/ticker');
+    const data = await res.json();
+    if (data.quotes && data.quotes.length) {
+      buildTicker(data.quotes);
+    }
   } catch (_) {
-    buildTicker(SYMBOLS.map(s => mockQuote(s.sym)));
+    // Silently fail — ticker is non-critical
   }
 }
 
-function mockQuote(sym) {
-  // Static placeholder values when market data isn't available
-  const prices = {
-    SPY: 539.12, AAPL: 211.45, MSFT: 422.80, NVDA: 127.60, AMZN: 192.30,
-    TSLA: 248.50, GOOGL: 176.90, META: 525.40, JPM: 214.60,
-    DOW: 42850, NASDAQ: 19200, 'S&P500': 5890, VIX: 13.4, GOLD: 2340, BTC: 67800
-  };
-  const base = prices[sym] || 100;
-  const change = (Math.random() - 0.48) * base * 0.012;
-  return {
-    sym,
-    price: (base + change).toFixed(sym === 'BTC' ? 0 : 2),
-    change,
-    changeStr: `${Math.abs((change / base) * 100).toFixed(2)}%`
-  };
-}
+// Refresh ticker every 60 seconds
+loadTicker();
+setInterval(loadTicker, 60000);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-loadTicker();
 loadTab('re'); // auto-load first tab
 </script>
 </body>

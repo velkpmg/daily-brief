@@ -2,10 +2,12 @@
   "version": 2,
   "builds": [
     { "src": "api/news.js", "use": "@vercel/node" },
+    { "src": "api/ticker.js", "use": "@vercel/node" },
     { "src": "public/**", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/news", "dest": "api/news.js" },
+    { "src": "/api/ticker", "dest": "api/ticker.js" },
     { "src": "/(.*)", "dest": "public/$1" }
   ]
 }
