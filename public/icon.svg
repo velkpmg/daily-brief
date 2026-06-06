@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Dark background with rounded corners -->
+  <rect width="512" height="512" rx="90" fill="#0d0f14"/>
+  <!-- Blue top accent bar -->
+  <rect x="56" y="72" width="400" height="14" rx="7" fill="#4f8ef7"/>
+  <!-- Main headline block -->
+  <rect x="56" y="116" width="260" height="14" rx="7" fill="#e8eaf0"/>
+  <!-- Body text lines -->
+  <rect x="56" y="152" width="400" height="8" rx="4" fill="#2a2d38"/>
+  <rect x="56" y="172" width="360" height="8" rx="4" fill="#2a2d38"/>
+  <rect x="56" y="192" width="380" height="8" rx="4" fill="#2a2d38"/>
+  <!-- Divider -->
+  <rect x="56" y="220" width="400" height="2" rx="1" fill="#2a2d38"/>
+  <!-- Left column -->
+  <rect x="56" y="238" width="185" height="8" rx="4" fill="#4f8ef7"/>
+  <rect x="56" y="258" width="185" height="6" rx="3" fill="#2a2d38"/>
+  <rect x="56" y="274" width="160" height="6" rx="3" fill="#2a2d38"/>
+  <rect x="56" y="290" width="175" height="6" rx="3" fill="#2a2d38"/>
+  <!-- Right column card -->
+  <rect x="259" y="232" width="197" height="80" rx="10" fill="#161820"/>
+  <rect x="272" y="248" width="100" height="8" rx="4" fill="#4f8ef7"/>
+  <rect x="272" y="264" width="165" height="6" rx="3" fill="#2a2d38"/>
+  <rect x="272" y="278" width="140" height="6" rx="3" fill="#2a2d38"/>
+  <rect x="272" y="292" width="155" height="6" rx="3" fill="#2a2d38"/>
+  <!-- Bottom text lines -->
+  <rect x="56" y="334" width="400" height="6" rx="3" fill="#2a2d38"/>
+  <rect x="56" y="352" width="320" height="6" rx="3" fill="#2a2d38"/>
+  <!-- KB monogram bottom right -->
+  <text x="310" y="460" font-family="Georgia, 'Times New Roman', serif" font-size="96" font-weight="700" fill="#4f8ef7">KB</text>
+</svg>
