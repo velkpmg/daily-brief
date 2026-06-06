@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Daily Brief</title>
+  <title>Kirk's Daily Brief</title>
+  <!-- Newspaper emoji favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -80,7 +82,7 @@
       border-right: 1px solid var(--border);
     }
 
-    .ticker-sym { color: var(--muted); font-size: 11px; }
+    .ticker-sym   { color: var(--muted); font-size: 11px; }
     .ticker-price { color: var(--text); }
     .ticker-chg.up   { color: var(--green); }
     .ticker-chg.down { color: var(--red); }
@@ -99,6 +101,7 @@
       display: flex;
       align-items: baseline;
       gap: 16px;
+      flex-wrap: wrap;
     }
 
     header h1 {
@@ -206,12 +209,25 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 20px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .panel-header h2 {
       font-family: 'Playfair Display', serif;
       font-size: 20px;
       font-weight: 600;
+    }
+
+    .panel-header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .last-updated {
+      font-size: 11px;
+      color: var(--muted);
     }
 
     .refresh-btn {
@@ -259,15 +275,12 @@
       animation: spin .8s linear infinite;
     }
 
-    .error-icon { font-size: 32px; }
-    .error-msg { color: var(--red); font-weight: 500; }
+    .error-icon  { font-size: 32px; }
+    .error-msg   { color: var(--red); font-weight: 500; }
     .error-detail { color: var(--muted); font-size: 12px; max-width: 480px; }
 
     /* ── Cards ── */
-    .cards-grid {
-      display: grid;
-      gap: 12px;
-    }
+    .cards-grid { display: grid; gap: 12px; }
 
     .card {
       background: var(--surface);
@@ -317,11 +330,7 @@
       color: var(--text);
     }
 
-    .card-title a {
-      color: inherit;
-      text-decoration: none;
-    }
-
+    .card-title a { color: inherit; text-decoration: none; }
     .card-title a:hover { color: var(--accent); }
 
     .card-summary {
@@ -331,9 +340,11 @@
     }
 
     /* ── Responsive ── */
-    @media (max-width: 600px) {
+    @media (max-width: 700px) {
       header, .tabs, .tab-panel { padding-left: 16px; padding-right: 16px; }
+      header { flex-direction: column; align-items: flex-start; }
       header h1 { font-size: 24px; }
+      .weather-widget { width: 100%; min-width: unset; }
     }
   </style>
 </head>
@@ -372,7 +383,10 @@
   <div id="panel-re" class="tab-panel active">
     <div class="panel-header">
       <h2>Real Estate &amp; Property Management</h2>
-      <button class="refresh-btn" onclick="loadTab('re')"><span class="refresh-icon">↻</span> Refresh</button>
+      <div class="panel-header-right">
+        <span class="last-updated" id="updated-re"></span>
+        <button class="refresh-btn" onclick="loadTab('re')"><span class="refresh-icon">↻</span> Refresh</button>
+      </div>
     </div>
     <div id="content-re" class="state-box"><div class="spinner"></div><span>Loading headlines…</span></div>
   </div>
@@ -380,7 +394,10 @@
   <div id="panel-ca" class="tab-panel">
     <div class="panel-header">
       <h2>California Property Management</h2>
-      <button class="refresh-btn" onclick="loadTab('ca')"><span class="refresh-icon">↻</span> Refresh</button>
+      <div class="panel-header-right">
+        <span class="last-updated" id="updated-ca"></span>
+        <button class="refresh-btn" onclick="loadTab('ca')"><span class="refresh-icon">↻</span> Refresh</button>
+      </div>
     </div>
     <div id="content-ca" class="state-box"><div class="spinner"></div><span>Loading headlines…</span></div>
   </div>
@@ -388,7 +405,10 @@
   <div id="panel-cigar" class="tab-panel">
     <div class="panel-header">
       <h2>Cigar &amp; Tobacco Industry</h2>
-      <button class="refresh-btn" onclick="loadTab('cigar')"><span class="refresh-icon">↻</span> Refresh</button>
+      <div class="panel-header-right">
+        <span class="last-updated" id="updated-cigar"></span>
+        <button class="refresh-btn" onclick="loadTab('cigar')"><span class="refresh-icon">↻</span> Refresh</button>
+      </div>
     </div>
     <div id="content-cigar" class="state-box"><div class="spinner"></div><span>Loading headlines…</span></div>
   </div>
@@ -396,7 +416,10 @@
   <div id="panel-general" class="tab-panel">
     <div class="panel-header">
       <h2>General News</h2>
-      <button class="refresh-btn" onclick="loadTab('general')"><span class="refresh-icon">↻</span> Refresh</button>
+      <div class="panel-header-right">
+        <span class="last-updated" id="updated-general"></span>
+        <button class="refresh-btn" onclick="loadTab('general')"><span class="refresh-icon">↻</span> Refresh</button>
+      </div>
     </div>
     <div id="content-general" class="state-box"><div class="spinner"></div><span>Loading headlines…</span></div>
   </div>
@@ -404,14 +427,19 @@
   <div id="panel-market" class="tab-panel">
     <div class="panel-header">
       <h2>US Financial Markets &amp; Stocks</h2>
-      <button class="refresh-btn" onclick="loadTab('market')"><span class="refresh-icon">↻</span> Refresh</button>
+      <div class="panel-header-right">
+        <span class="last-updated" id="updated-market"></span>
+        <button class="refresh-btn" onclick="loadTab('market')"><span class="refresh-icon">↻</span> Refresh</button>
+      </div>
     </div>
     <div id="content-market" class="state-box"><div class="spinner"></div><span>Loading headlines…</span></div>
   </div>
 </main>
 
 <script>
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Config ────────────────────────────────────────────────────────────────────
+
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 const TAB_CONFIG = {
   re: {
@@ -441,8 +469,8 @@ const TAB_CONFIG = {
   }
 };
 
+// cache stores { articles, loadedAt }
 const cache = {};
-let activeTab = 're';
 
 // ── Date header ───────────────────────────────────────────────────────────────
 document.getElementById('headerDate').textContent = new Date().toLocaleDateString('en-US', {
@@ -453,8 +481,10 @@ document.getElementById('headerDate').textContent = new Date().toLocaleDateStrin
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
-  activeTab = tab;
-  if (!cache[tab]) loadTab(tab);
+
+  const entry = cache[tab];
+  const expired = !entry || (Date.now() - entry.loadedAt > CACHE_TTL_MS);
+  if (expired) loadTab(tab);
 }
 
 // ── Fetch headlines ───────────────────────────────────────────────────────────
@@ -479,24 +509,25 @@ async function fetchArticles(prompt) {
 
 async function loadTab(tab) {
   const contentEl = document.getElementById(`content-${tab}`);
-  const btn = document.querySelector(`#panel-${tab} .refresh-btn`);
+  const btn       = document.querySelector(`#panel-${tab} .refresh-btn`);
+  const updatedEl = document.getElementById(`updated-${tab}`);
 
   cache[tab] = null;
   showLoading(contentEl);
+  if (updatedEl) updatedEl.textContent = '';
   if (btn) { btn.disabled = true; btn.classList.add('spinning'); }
 
   let articles = null;
-  let lastErr = null;
+  let lastErr  = null;
   const MAX_TRIES = 3;
 
   for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
     try {
       articles = await fetchArticles(TAB_CONFIG[tab].prompt);
-      break; // success
+      break;
     } catch (err) {
       lastErr = err;
       if (attempt < MAX_TRIES) {
-        // Show retry state but don't give up yet
         showRetrying(contentEl, attempt, MAX_TRIES);
         await new Promise(r => setTimeout(r, 2000 * attempt));
       }
@@ -504,8 +535,10 @@ async function loadTab(tab) {
   }
 
   if (articles) {
-    cache[tab] = articles;
+    const loadedAt = Date.now();
+    cache[tab] = { articles, loadedAt };
     renderCards(contentEl, articles, TAB_CONFIG[tab].tagClass, TAB_CONFIG[tab].label);
+    if (updatedEl) updatedEl.textContent = `Updated ${formatTime(loadedAt)}`;
   } else {
     showError(contentEl, lastErr.message);
   }
@@ -513,26 +546,8 @@ async function loadTab(tab) {
   if (btn) { btn.disabled = false; btn.classList.remove('spinning'); }
 }
 
-// ── Extract JSON array from Anthropic response ────────────────────────────────
-function extractArticles(data) {
-  // Collect all text blocks
-  const textBlocks = (data.content || [])
-    .filter(b => b.type === 'text')
-    .map(b => b.text)
-    .join('\n');
-
-  // Strip markdown code fences if present
-  const stripped = textBlocks.replace(/```(?:json)?\s*/g, '').replace(/```/g, '');
-
-  // Try greedy match for a JSON array of objects
-  const match = stripped.match(/\[[\s\S]*\]/);
-  if (match) {
-    try {
-      const arr = JSON.parse(match[0]);
-      if (Array.isArray(arr) && arr.length > 0 && arr[0].title) return arr;
-    } catch (_) {}
-  }
-  return null;
+function formatTime(ts) {
+  return new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
 // ── Render cards ──────────────────────────────────────────────────────────────
@@ -564,6 +579,7 @@ function renderCards(el, articles, tagClass, tagLabel) {
   el.appendChild(grid);
 }
 
+// ── State helpers ─────────────────────────────────────────────────────────────
 function showLoading(el) {
   el.className = 'state-box';
   el.innerHTML = '<div class="spinner"></div><span>Fetching live headlines…</span>';
@@ -612,17 +628,12 @@ function buildTicker(quotes) {
 
 async function loadTicker() {
   try {
-    const res = await fetch('/api/ticker');
+    const res  = await fetch('/api/ticker');
     const data = await res.json();
-    if (data.quotes && data.quotes.length) {
-      buildTicker(data.quotes);
-    }
-  } catch (_) {
-    // Silently fail — ticker is non-critical
-  }
+    if (data.quotes && data.quotes.length) buildTicker(data.quotes);
+  } catch (_) { /* non-critical — fail silently */ }
 }
 
-// Refresh ticker every 60 seconds
 loadTicker();
 setInterval(loadTicker, 60000);
 
@@ -662,12 +673,12 @@ async function loadWeather() {
     const data = await res.json();
     const c    = data.current;
 
-    const code = c.weather_code;
-    const [icon, desc] = WX_CODES[code] || ['🌡️', 'Unknown'];
+    const [icon, desc] = WX_CODES[c.weather_code] || ['🌡️', 'Unknown'];
     const temp     = Math.round(c.temperature_2m);
     const feels    = Math.round(c.apparent_temperature);
     const humidity = Math.round(c.relative_humidity_2m);
     const wind     = Math.round(c.wind_speed_10m);
+    const updated  = formatTime(Date.now());
 
     document.getElementById('weatherWidget').innerHTML = `
       <div class="weather-icon">${icon}</div>
@@ -680,6 +691,7 @@ async function loadWeather() {
         <span>Feels ${feels}°F</span>
         <span>Humidity ${humidity}%</span>
         <span>Wind ${wind} mph</span>
+        <span style="margin-top:2px;font-size:10px">as of ${updated}</span>
       </div>
     `;
   } catch (_) {
@@ -688,12 +700,11 @@ async function loadWeather() {
   }
 }
 
-// Load weather on start, refresh every 10 minutes
 loadWeather();
-setInterval(loadWeather, 600000);
+setInterval(loadWeather, 600000); // refresh every 10 min
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-loadTab('re'); // auto-load first tab
+loadTab('re');
 </script>
 </body>
 </html>

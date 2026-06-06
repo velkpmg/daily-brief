@@ -2,21 +2,21 @@ const https = require('https');
 
 // Symbol map — using ETF proxies for indices since Finnhub free tier covers stocks/ETFs/crypto/forex
 const SYMBOLS = [
-  { finnhub: 'SPY',              label: 'SPY',     type: 'stock' },
-  { finnhub: 'AAPL',             label: 'AAPL',    type: 'stock' },
-  { finnhub: 'MSFT',             label: 'MSFT',    type: 'stock' },
-  { finnhub: 'NVDA',             label: 'NVDA',    type: 'stock' },
-  { finnhub: 'AMZN',             label: 'AMZN',    type: 'stock' },
-  { finnhub: 'TSLA',             label: 'TSLA',    type: 'stock' },
-  { finnhub: 'GOOGL',            label: 'GOOGL',   type: 'stock' },
-  { finnhub: 'META',             label: 'META',    type: 'stock' },
-  { finnhub: 'JPM',              label: 'JPM',     type: 'stock' },
-  { finnhub: 'DIA',              label: 'DOW',     type: 'stock' },  // Dow Jones ETF
-  { finnhub: 'QQQ',              label: 'NASDAQ',  type: 'stock' },  // NASDAQ-100 ETF
-  { finnhub: 'VOO',              label: 'S&P 500', type: 'stock' },  // S&P 500 ETF
-  { finnhub: 'VIXY',             label: 'VIX',     type: 'stock' },  // VIX futures ETF
-  { finnhub: 'GLD',               label: 'GOLD',    type: 'stock'  },  // SPDR Gold ETF
-  { finnhub: 'BINANCE:BTCUSDT',  label: 'BTC',     type: 'crypto' },
+  { finnhub: 'SPY',             label: 'SPY'     },
+  { finnhub: 'AAPL',            label: 'AAPL'    },
+  { finnhub: 'MSFT',            label: 'MSFT'    },
+  { finnhub: 'NVDA',            label: 'NVDA'    },
+  { finnhub: 'AMZN',            label: 'AMZN'    },
+  { finnhub: 'TSLA',            label: 'TSLA'    },
+  { finnhub: 'GOOGL',           label: 'GOOGL'   },
+  { finnhub: 'META',            label: 'META'    },
+  { finnhub: 'JPM',             label: 'JPM'     },
+  { finnhub: 'DIA',             label: 'DOW'     },  // Dow Jones ETF
+  { finnhub: 'QQQ',             label: 'NASDAQ'  },  // NASDAQ-100 ETF
+  { finnhub: 'VOO',             label: 'S&P 500' },  // S&P 500 ETF
+  { finnhub: 'VIXY',            label: 'VIX'     },  // VIX futures ETF
+  { finnhub: 'GLD',             label: 'GOLD'    },  // SPDR Gold ETF
+  { finnhub: 'BINANCE:BTCUSDT', label: 'BTC'     },
 ];
 
 function fetchQuote(symbol, token) {

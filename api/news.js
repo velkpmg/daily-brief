@@ -8,6 +8,12 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // Basic origin check — block requests not coming from this deployment
+  const origin = req.headers.origin || req.headers.referer || '';
+  if (origin && !origin.includes('vercel.app') && !origin.includes('localhost')) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
 
@@ -15,8 +21,8 @@ module.exports = async (req, res) => {
   if (!prompt) return res.status(400).json({ error: 'Missing prompt in request body' });
 
   const payload = JSON.stringify({
-    model: 'claude-sonnet-4-5',
-    max_tokens: 4096,
+    model: 'claude-sonnet-4-6',       // updated from 4-5
+    max_tokens: 1024,                  // reduced from 4096 — JSON array needs ~400-600 tokens
     tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }],
     messages: [{ role: 'user', content: prompt }]
   });
@@ -45,10 +51,11 @@ module.exports = async (req, res) => {
           // Pass through non-200 errors (rate limits, auth, etc.)
           if (response.statusCode !== 200) {
             const errMsg = parsed?.error?.message || parsed?.error || `API error ${response.statusCode}`;
+            resolve();
             return res.status(response.statusCode).json({ error: errMsg });
           }
 
-          // Extract the text blocks from the response
+          // Extract text blocks from the response
           const textBlocks = (parsed.content || [])
             .filter(b => b.type === 'text')
             .map(b => b.text)
@@ -60,7 +67,7 @@ module.exports = async (req, res) => {
             .replace(/```\s*/g, '')
             .trim();
 
-          // Try direct parse first (if entire response is the array)
+          // Try direct parse first
           let articles = null;
           try {
             const direct = JSON.parse(cleaned);
@@ -69,43 +76,49 @@ module.exports = async (req, res) => {
             }
           } catch (_) {}
 
-          // Fallback: find first [...] block that parses as article array
+          // Fallback: slice from first [ to last ]
           if (!articles) {
             const start = cleaned.indexOf('[');
             const end = cleaned.lastIndexOf(']');
             if (start !== -1 && end > start) {
               try {
-                const slice = cleaned.slice(start, end + 1);
-                const arr = JSON.parse(slice);
-                if (Array.isArray(arr) && arr.length && arr[0].title) {
-                  articles = arr;
-                }
+                const arr = JSON.parse(cleaned.slice(start, end + 1));
+                if (Array.isArray(arr) && arr.length && arr[0].title) articles = arr;
               } catch (_) {}
             }
           }
 
           if (!articles) {
+            resolve();
             return res.status(500).json({
               error: 'Could not extract articles from response',
               debug: cleaned.slice(0, 500)
             });
           }
 
-          // Sort newest first using timestamp if present, preserving order for ties
+          // Sort newest first
           articles.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
           resolve();
           return res.status(200).json({ articles });
+
         } catch (e) {
-          res.status(500).json({ error: 'Failed to parse Anthropic response', detail: e.message });
           resolve();
+          return res.status(500).json({ error: 'Failed to parse Anthropic response', detail: e.message });
         }
       });
     });
 
-    request.on('error', (err) => {
-      res.status(500).json({ error: 'Request to Anthropic failed', detail: err.message });
+    // Explicit socket timeout — fail fast rather than hanging to the 60s limit
+    request.setTimeout(55000, () => {
+      request.destroy();
       resolve();
+      return res.status(504).json({ error: 'Request to Anthropic timed out after 55s' });
+    });
+
+    request.on('error', (err) => {
+      resolve();
+      return res.status(500).json({ error: 'Request to Anthropic failed', detail: err.message });
     });
 
     request.write(payload);
