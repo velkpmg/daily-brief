@@ -391,6 +391,25 @@ function switchTab(tab) {
 }
 
 // ── Fetch headlines ───────────────────────────────────────────────────────────
+async function fetchArticles(prompt) {
+  const res = await fetch('/api/news', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    let msg = (typeof data.error === 'string') ? data.error : `HTTP ${res.status}: ${res.statusText}`;
+    if (res.status === 429) msg = 'Rate limit reached — please wait 60 seconds and click Refresh.';
+    throw new Error(msg);
+  }
+  if (!data.articles || !data.articles.length) {
+    const hint = data.debug ? ` (${data.debug.slice(0, 100)})` : '';
+    throw new Error('No articles returned.' + hint);
+  }
+  return data.articles;
+}
+
 async function loadTab(tab) {
   const contentEl = document.getElementById(`content-${tab}`);
   const btn = document.querySelector(`#panel-${tab} .refresh-btn`);
@@ -399,35 +418,32 @@ async function loadTab(tab) {
   showLoading(contentEl);
   if (btn) { btn.disabled = true; btn.classList.add('spinning'); }
 
-  try {
-    const res = await fetch('/api/news', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: TAB_CONFIG[tab].prompt })
-    });
+  let articles = null;
+  let lastErr = null;
+  const MAX_TRIES = 3;
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      let errMsg = (typeof data.error === 'string') ? data.error : `HTTP ${res.status}: ${res.statusText}`;
-      if (res.status === 429) errMsg = 'Rate limit reached — please wait 60 seconds and click Refresh.';
-      throw new Error(errMsg);
+  for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
+    try {
+      articles = await fetchArticles(TAB_CONFIG[tab].prompt);
+      break; // success
+    } catch (err) {
+      lastErr = err;
+      if (attempt < MAX_TRIES) {
+        // Show retry state but don't give up yet
+        showRetrying(contentEl, attempt, MAX_TRIES);
+        await new Promise(r => setTimeout(r, 2000 * attempt));
+      }
     }
+  }
 
-    const articles = data.articles;
-    if (!articles || !articles.length) {
-      const hint = data.debug ? ` Debug: ${data.debug.slice(0, 120)}` : '';
-      throw new Error('No articles returned.' + hint);
-    }
-
+  if (articles) {
     cache[tab] = articles;
     renderCards(contentEl, articles, TAB_CONFIG[tab].tagClass, TAB_CONFIG[tab].label);
-
-  } catch (err) {
-    showError(contentEl, err.message);
-  } finally {
-    if (btn) { btn.disabled = false; btn.classList.remove('spinning'); }
+  } else {
+    showError(contentEl, lastErr.message);
   }
+
+  if (btn) { btn.disabled = false; btn.classList.remove('spinning'); }
 }
 
 // ── Extract JSON array from Anthropic response ────────────────────────────────
@@ -484,6 +500,11 @@ function renderCards(el, articles, tagClass, tagLabel) {
 function showLoading(el) {
   el.className = 'state-box';
   el.innerHTML = '<div class="spinner"></div><span>Fetching live headlines…</span>';
+}
+
+function showRetrying(el, attempt, max) {
+  el.className = 'state-box';
+  el.innerHTML = `<div class="spinner"></div><span>Retrying… (attempt ${attempt + 1} of ${max})</span>`;
 }
 
 function showError(el, msg) {
